@@ -8,9 +8,9 @@ The Go library to manage contacts.
 ## Features
 
 * Import Yahoo's contacts with OAuth2
+* Import Google's contacts v3 with OAuth2
 
 ## TODO
 
 * VCard 4.0 Encode and Decode
-* Import Google's contacts with OAuth2
 * Import Outlook's contacts with OAuth2

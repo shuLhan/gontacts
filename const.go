@@ -10,7 +10,9 @@ const (
 
 // List of known TYPE values.
 const (
-	TypeHome   = "home"
-	TypeMobile = "mobile"
-	TypeWork   = "work"
+	TypeAnniversary = "anniversary"
+	TypeHome        = "home"
+	TypeMain        = "main"
+	TypeMobile      = "mobile"
+	TypeWork        = "work"
 )
