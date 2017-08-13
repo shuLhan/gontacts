@@ -8,7 +8,10 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/json-iterator/go"
 	"golang.org/x/oauth2"
+
+	"github.com/shuLhan/gontacts"
 )
 
 const (
@@ -60,6 +63,27 @@ func NewClient(cid, csecret, redirectURL string) (yc *Client) {
 }
 
 //
+// ImportFromJSON will parse JSON input and return list of Contact on success.
+//
+// On fail it will return nil and error.
+//
+func ImportFromJSON(jsonb []byte) (contacts []*gontacts.Contact, err error) {
+	root := &Root{}
+
+	err = jsoniter.Unmarshal(jsonb, root)
+	if err != nil {
+		return
+	}
+
+	for _, ycontact := range root.Contacts.Contact {
+		contact := ycontact.Decode()
+		contacts = append(contacts, contact)
+	}
+
+	return
+}
+
+//
 // ImportContactsWithGUID will send a request to user's contact API based on
 // GUID, parse it, and convert and return it as pointer to Contacts object.
 //
@@ -73,7 +97,7 @@ func NewClient(cid, csecret, redirectURL string) (yc *Client) {
 // [1] https://developer.yahoo.com/social/rest_api_guide/contacts-resource.html
 //
 func (yc *Client) ImportContactsWithGUID(guid string) (
-	contacts *Contacts,
+	contacts []*gontacts.Contact,
 	err error,
 ) {
 	api := apiUserURL + guid + apiContactSuffix
@@ -93,21 +117,21 @@ func (yc *Client) ImportContactsWithGUID(guid string) (
 		return
 	}
 
-	contacts, err = NewContacts(resBody)
+	contacts, err = ImportFromJSON(resBody)
 
 	return
 }
 
 //
 // ImportContactsWithOAuth will send a request to user's contact API using OAuth
-// authentication code, and return pointer to Contacts object.
+// authentication code, and return list of Contact.
 //
 // On fail, it will return nil Contacts with error.
 //
 func (yc *Client) ImportContactsWithOAuth(
 	code string,
 ) (
-	contacts *Contacts,
+	contacts []*gontacts.Contact,
 	err error,
 ) {
 	token, err := yc.oauth.Exchange(context.Background(), code)
