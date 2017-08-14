@@ -20,7 +20,7 @@ const (
 	oauthConfirmURL = "https://www.googleapis.com/oauth2/v4/token"
 
 	// List of APIs
-	apiUserURL = "https://www.google.com/m8/feeds/contacts/default/full?alt=json&max-results=50000&v=3.0"
+	apiContactsURL = "https://www.google.com/m8/feeds/contacts/default/full?alt=json&max-results=50000&v=3.0"
 )
 
 //
@@ -51,17 +51,18 @@ func NewClient(cid, csecret, redirectURL string) (client *Client) {
 				TokenURL: oauthConfirmURL,
 			},
 		},
+		http: &http.Client{},
 	}
 
 	return
 }
 
 //
-// NewContacts will parse JSON input and return Contacts object on success.
+// ImportFromJSON will parse JSON input and return Contacts object on success.
 //
 // On fail it will return nil and error.
 //
-func NewContacts(jsonb []byte) (contacts []*gontacts.Contact, err error) {
+func ImportFromJSON(jsonb []byte) (contacts []*gontacts.Contact, err error) {
 	root := &Root{}
 
 	err = jsoniter.Unmarshal(jsonb, root)
@@ -77,11 +78,17 @@ func NewContacts(jsonb []byte) (contacts []*gontacts.Contact, err error) {
 	return
 }
 
-func (client *Client) fetchContacts() (
+//
+// Fetch will send a request to `url` to get list of contacts.
+//
+// On success it will return list of contacts with no error.
+// On fail it will return empty contacts with error.
+//
+func (client *Client) Fetch(url string) (
 	contacts []*gontacts.Contact,
 	err error,
 ) {
-	res, err := client.http.Get(apiUserURL)
+	res, err := client.http.Get(url)
 	if err != nil {
 		return
 	}
@@ -96,29 +103,35 @@ func (client *Client) fetchContacts() (
 		return
 	}
 
-	contacts, err = NewContacts(resBody)
+	contacts, err = ImportFromJSON(resBody)
 
 	return
 }
 
 //
-// ImportContactsWithOAuth will send a request to user's contact API using OAuth
-// authentication code, and return pointer to Contacts object.
+// ImportWithOAuth will send a request to user's contact API using OAuth
+// authentication code.
 //
-// On fail, it will return nil Contacts with error.
+// On success it will return pointer to OAuth token and list of contacts, with
+// nil error.
 //
-func (client *Client) ImportContactsWithOAuth(
+// On fail, it will return nil token, empty contacts, and error.
+//
+func (client *Client) ImportWithOAuth(
 	code string,
 ) (
+	token *oauth2.Token,
 	contacts []*gontacts.Contact,
 	err error,
 ) {
-	token, err := client.oauth.Exchange(context.Background(), code)
+	token, err = client.oauth.Exchange(context.Background(), code)
 	if err != nil {
 		return
 	}
 
 	client.http = client.oauth.Client(context.Background(), token)
 
-	return client.fetchContacts()
+	contacts, err = client.Fetch(apiContactsURL)
+
+	return
 }

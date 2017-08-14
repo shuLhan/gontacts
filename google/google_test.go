@@ -23,13 +23,13 @@ func assert(t *testing.T, exp, got interface{}, equal bool) {
 		"          got '%v'\n", exp, got)
 }
 
-func TestNewContacts(t *testing.T) {
+func TestImportFromJSON(t *testing.T) {
 	jsonb, err := ioutil.ReadFile(sampleContacts)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	contacts, err := NewContacts(jsonb)
+	contacts, err := ImportFromJSON(jsonb)
 	if err != nil {
 		t.Fatal(err)
 	}
