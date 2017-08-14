@@ -54,6 +54,7 @@ func NewClient(cid, csecret, redirectURL string) (c *Client) {
 				TokenURL: oauthConfirmURL,
 			},
 		},
+		http: &http.Client{},
 	}
 
 	return
@@ -63,7 +64,7 @@ func NewClient(cid, csecret, redirectURL string) (c *Client) {
 // ImportFromJSON will parse Microsoft Live's JSON contact response and return
 // list of gontacts Contact on success.
 //
-func (client *Client) ImportFromJSON(jsonb []byte) (
+func ImportFromJSON(jsonb []byte) (
 	contacts []*gontacts.Contact,
 	err error,
 ) {
@@ -110,7 +111,7 @@ func (client *Client) Fetch(url string) (
 		return
 	}
 
-	contacts, err = client.ImportFromJSON(resBody)
+	contacts, err = ImportFromJSON(resBody)
 
 	return
 }

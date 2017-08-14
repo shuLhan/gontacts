@@ -80,9 +80,7 @@ func TestImportFromJSON(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	microsoftClient := NewClient("", "", "")
-
-	contacts, err := microsoftClient.ImportFromJSON(jsonb)
+	contacts, err := ImportFromJSON(jsonb)
 	if err != nil {
 		t.Fatal(err)
 	}
