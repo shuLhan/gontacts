@@ -25,8 +25,8 @@ const (
 	oauthConfirmURL = "https://api.login.yahoo.com/oauth2/get_token"
 
 	// List of APIs
-	apiUserURL       = "https://social.yahooapis.com/v1/user/"
-	apiContactSuffix = "/contacts?format=json&count=max"
+	apiContactsURL    = "https://social.yahooapis.com/v1/user/"
+	apiContactsSuffix = "/contacts?format=json&count=max"
 
 	// List of default values
 	defOAuthRedirectURL = "oob"
@@ -89,21 +89,19 @@ func ImportFromJSON(jsonb []byte) (contacts []*gontacts.Contact, err error) {
 }
 
 //
-// ImportWithGUID will send a request to user's contact API based on
+// Fetch will send a request to user's contact API based on
 // GUID, parse it, and convert and return it as pointer to Contacts object.
 //
 // The response will be in JSON format with entire list of contacts (see
-// apiContactSuffix).
+// apiContactsSuffix).
 //
 // On fail it will return nil and error.
 //
-func (yc *Client) ImportWithGUID(guid string) (
+func (yc *Client) Fetch(url string) (
 	contacts []*gontacts.Contact,
 	err error,
 ) {
-	api := apiUserURL + guid + apiContactSuffix
-
-	res, err := yc.http.Get(api)
+	res, err := yc.http.Get(url)
 	if err != nil {
 		return
 	}
@@ -143,7 +141,10 @@ func (yc *Client) ImportWithOAuth(
 
 	yc.http = yc.oauth.Client(context.Background(), token)
 
-	contacts, err = yc.ImportWithGUID(token.Extra(oauthKey).(string))
+	guid := token.Extra(oauthKey).(string)
+	api := apiContactsURL + guid + apiContactsSuffix
+
+	contacts, err = yc.Fetch(api)
 
 	return
 }
