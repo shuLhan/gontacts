@@ -14,5 +14,6 @@ const (
 	TypeHome        = "home"
 	TypeMain        = "main"
 	TypeMobile      = "mobile"
+	TypeOther       = "other"
 	TypeWork        = "work"
 )
