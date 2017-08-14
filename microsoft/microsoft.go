@@ -106,11 +106,6 @@ func (client *Client) Fetch(url string) (
 		return
 	}
 
-	err = ioutil.WriteFile("/tmp/live_contacts.json", resBody, 0600)
-	if err != nil {
-		return
-	}
-
 	contacts, err = ImportFromJSON(resBody)
 
 	return
