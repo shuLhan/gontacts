@@ -1,6 +1,10 @@
 //
 // Package yahoo implement user's contacts import using Yahoo API.
 //
+// References,
+//
+// [1] https://developer.yahoo.com/social/rest_api_guide/contacts-resource.html
+//
 package yahoo
 
 import (
@@ -57,6 +61,7 @@ func NewClient(cid, csecret, redirectURL string) (yc *Client) {
 				TokenURL: oauthConfirmURL,
 			},
 		},
+		http: &http.Client{},
 	}
 
 	return
@@ -84,7 +89,7 @@ func ImportFromJSON(jsonb []byte) (contacts []*gontacts.Contact, err error) {
 }
 
 //
-// ImportContactsWithGUID will send a request to user's contact API based on
+// ImportWithGUID will send a request to user's contact API based on
 // GUID, parse it, and convert and return it as pointer to Contacts object.
 //
 // The response will be in JSON format with entire list of contacts (see
@@ -92,11 +97,7 @@ func ImportFromJSON(jsonb []byte) (contacts []*gontacts.Contact, err error) {
 //
 // On fail it will return nil and error.
 //
-// References,
-//
-// [1] https://developer.yahoo.com/social/rest_api_guide/contacts-resource.html
-//
-func (yc *Client) ImportContactsWithGUID(guid string) (
+func (yc *Client) ImportWithGUID(guid string) (
 	contacts []*gontacts.Contact,
 	err error,
 ) {
@@ -123,23 +124,26 @@ func (yc *Client) ImportContactsWithGUID(guid string) (
 }
 
 //
-// ImportContactsWithOAuth will send a request to user's contact API using OAuth
+// ImportWithOAuth will send a request to user's contact API using OAuth
 // authentication code, and return list of Contact.
 //
 // On fail, it will return nil Contacts with error.
 //
-func (yc *Client) ImportContactsWithOAuth(
+func (yc *Client) ImportWithOAuth(
 	code string,
 ) (
+	token *oauth2.Token,
 	contacts []*gontacts.Contact,
 	err error,
 ) {
-	token, err := yc.oauth.Exchange(context.Background(), code)
+	token, err = yc.oauth.Exchange(context.Background(), code)
 	if err != nil {
 		return
 	}
 
 	yc.http = yc.oauth.Client(context.Background(), token)
 
-	return yc.ImportContactsWithGUID(token.Extra(oauthKey).(string))
+	contacts, err = yc.ImportWithGUID(token.Extra(oauthKey).(string))
+
+	return
 }
