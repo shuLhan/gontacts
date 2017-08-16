@@ -62,7 +62,7 @@ func ImportWithOAuth(
 
 	req, err := http.NewRequest("GET", api, nil)
 
-	req.Header.Add("Authorization", tokenType+" "+accessToken)
+	req.Header.Add("Authorization", "Bearer "+accessToken)
 
 	res, err := client.Do(req)
 	if err != nil {
